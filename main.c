@@ -6,8 +6,6 @@
 #include<string.h>
 #include<unistd.h>
 
-
-
 sem_t food_queue, meat_queue;
 
 int food, meat;
