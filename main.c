@@ -3,7 +3,6 @@
 #include<stdlib.h>
 #include<pthread.h>
 #include<time.h>
-#include<semaphore.h>
 #include<string.h>
 #include<unistd.h>
 
@@ -11,7 +10,7 @@
 
 #define NIGTH_LENGTH 10000000
 
-sem_t food_queue, meat_queue;
+pthread_mutex_t food_queue = PTHREAD_MUTEX_INITIALIZER, meat_queue = PTHREAD_MUTEX_INITIALIZER;
 
 int food, meat;
 
@@ -27,8 +26,6 @@ int main(int argc, char **argv) {
 		to_check.tv_nsec = NIGTH_LENGTH;
 	#endif
 	srand(time(NULL));
-	sem_init(&food_queue, 0, 1);
-	sem_init(&meat_queue, 0, 1);
 	meat = atoi(argv[3]);
 	food = atoi(argv[4]);
 	char cook_name[] = "cooknnnn";
@@ -75,12 +72,12 @@ int main(int argc, char **argv) {
 		int c_meat, c_food;
 		while(i < 367)
 		{
-			sem_wait(&food_queue);
+			pthread_mutex_lock(&food_queue);
 				c_food = food;
-			sem_post(&food_queue);
-			sem_wait(&meat_queue);
+			pthread_mutex_unlock(&food_queue);
+			pthread_mutex_lock(&meat_queue);
 				c_meat = meat;
-			sem_post(&meat_queue);
+			pthread_mutex_unlock(&meat_queue);
 			printf("%d %d\n",  c_meat, c_food);
 			nanosleep(&to_check, NULL);
 			i++;
@@ -110,20 +107,20 @@ void *hunter_occupation(void *arg)
 		}
 		if(hunted_animal > 0)
 		{
-			sem_wait(&meat_queue);
+			pthread_mutex_lock(&meat_queue);
 				meat++;
-			sem_post(&meat_queue);
+			pthread_mutex_unlock(&meat_queue);
 			hunted_animal = 0;
 		}
-		sem_wait(&food_queue);
+		pthread_mutex_lock(&food_queue);
 		if(food > 0)
 		{
 			food--;
-			sem_post(&food_queue);
+			pthread_mutex_unlock(&food_queue);
 		}
 		else
 		{
-			sem_post(&food_queue);	
+			pthread_mutex_unlock(&food_queue);	
 			pthread_exit(NULL);
 		}
 		nanosleep(&night_length, NULL);
@@ -141,13 +138,13 @@ void *cook_occupation(void *arg)
 	int d = 0;
 	for(d = 0; d < 365; d++)
 	{
-		sem_wait(&meat_queue);
+		pthread_mutex_lock(&meat_queue);
 		if(meat > 0)
 		{
 			meat--;
 			meat_in_the_hand = 1;
 		}
-		sem_post(&meat_queue);
+		pthread_mutex_unlock(&meat_queue);
 
 		if(meat_in_the_hand > 0)
 		{
@@ -156,21 +153,21 @@ void *cook_occupation(void *arg)
 		}
 		if(produced_food > 0)
 		{
-			sem_wait(&food_queue);
+			pthread_mutex_lock(&food_queue);
 				food += produced_food;
-			sem_post(&food_queue);
+			pthread_mutex_unlock(&food_queue);
 			produced_food = 0;
 		}
 		
-		sem_wait(&food_queue);
+		pthread_mutex_lock(&food_queue);
 		if(food > 0)
 		{
 			food--;
-			sem_post(&food_queue);
+			pthread_mutex_unlock(&food_queue);
 		}
 		else
 		{
-			sem_post(&food_queue);
+			pthread_mutex_unlock(&food_queue);
 			pthread_exit(NULL);
 		}
 		nanosleep(&night_length, NULL);
