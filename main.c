@@ -7,7 +7,7 @@
 #include<string.h>
 #include<unistd.h>
 
-#define OUTPUT 1  //ustawienie na 1 spowoduje przekazywanie mniej więcej co jeden dzień liczby zwierzyny oraz jedzenia na standardowe wyjście
+#define OUTPUT 0  //ustawienie na 1 spowoduje przekazywanie mniej więcej co jeden dzień liczby zwierzyny oraz jedzenia na standardowe wyjście
 
 #define NIGTH_LENGTH 10000000
 
@@ -36,7 +36,6 @@ int main(int argc, char **argv) {
 	char number[3];
 	int set = 0;
 	int check = 0;
-	printf("%d %d %d %d\n", number_of_hunters, number_of_cooks, meat, food);
 	pthread_t hunter[number_of_hunters];
 	pthread_t cook[number_of_cooks];
 	for(set = 0; set < number_of_hunters; set++)
